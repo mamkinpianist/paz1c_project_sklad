@@ -23,6 +23,12 @@ public class MainApp {
         PositionDao positionDao = DaoFactory.INSTANCE.getPositionDao();
       List<Product> productList = productDao.getAll();
       List<Position> positionList = positionDao.getAll();
-
+      List<Order>orderList = DaoFactory.INSTANCE.getorderDao().getAll();
+        Map<Product, Integer> map = new HashMap<>();
+        map.put(productList.get(0),1);
+        Order order = orderList.get(0);
+        order.setProductsInOrder(map);
+        order.setName("petyatest2");
+        orderDao.createOrder(order);
     }
 }

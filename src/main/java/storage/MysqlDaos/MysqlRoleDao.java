@@ -54,7 +54,7 @@ public class MysqlRoleDao implements RoleDao {
                 }
             });
         } catch (DataAccessException e) {
-            throw new EntityNotFoundException("product nie existuje");
+            throw new EntityNotFoundException("role nie existuje");
         }
     }
 

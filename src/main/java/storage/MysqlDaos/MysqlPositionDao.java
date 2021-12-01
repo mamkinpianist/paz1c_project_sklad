@@ -139,5 +139,17 @@ public class MysqlPositionDao implements PositionDao {
         return position.getHeight() * position.getWeight() * position.getLength();
     }
 
+    @Override
+    public Long getIdPositionByProduct(Product product, int pocet) {
+        String sql = "SELECT * FROM prosuctonposition where idProduct = ? and count>=? limit 1";
+        return jdbcTemplate.queryForObject(sql, new RowMapper<Long>() {
+            @Override
+            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Long id = rs.getLong("idPosition");
+                return id;
+            }
+        },product.getIdProduct(),pocet);
+    }
+
 
 }

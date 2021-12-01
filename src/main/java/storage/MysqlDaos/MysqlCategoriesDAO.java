@@ -1,8 +1,12 @@
 package storage.MysqlDaos;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import storage.constructors.Categories;
 import storage.EntityNotFoundException;
 import storage.daos.CategoriesDAO;
@@ -35,10 +39,20 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
     public Categories save(Categories categories) {
         if (categories.getIdCategories() == null)//INSERT
         {
-            String sql = "INSERT INTO categories(categoria) VALUE(?)";
-            int pocet = jdbcTemplate.update(sql, categories.getCategoria());
-            if (pocet == 1) {
-                return categories;
+            SimpleJdbcInsert insert = new SimpleJdbcInsert(jdbcTemplate);
+            insert.withTableName("`categories`");
+            insert.usingGeneratedKeyColumns("idCategories");
+            insert.usingColumns("categoria");
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+            namedParameters.addValue("categoria",categories.getCategoria());
+            try {
+                Long Id = insert.executeAndReturnKey(namedParameters).longValue();
+                if (Id>=1) {
+                    categories.setIdCategories(Id);
+                    return categories;
+                }
+            } catch (DuplicateKeyException e) {
+               throw new EntityNotFoundException("categoria uz existuje");
             }
         } else {//update
             String sql = "UPDATE categories SET categoria = ? where idCategories = ?";
@@ -46,8 +60,7 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
             if (pocet >= 1) {
                 return categories;
             } else {
-                throw new EntityNotFoundException("positia nie existuje");
-
+                throw new EntityNotFoundException("categoria nie existuje");
             }
         }
         return categories;
@@ -56,8 +69,12 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
     @Override
     public Categories delete(Long id) {
         Categories catToDelete = getbyID(id);
-        String sql = "DELETE from categories where idCategories =" + id;
-        int pocet = jdbcTemplate.update(sql);
+        try {
+            String sql = "DELETE from categories where idCategories =" + id;
+            int pocet = jdbcTemplate.update(sql);
+        } catch (DataIntegrityViolationException e) {
+             throw new EntityNotFoundException("nie je mozne zmazat categoriu");
+        }
         return catToDelete;
     }
 
@@ -74,7 +91,7 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
                 }
             });
         } catch (DataAccessException e) {
-            throw new EntityNotFoundException("posiitia nie existuje");
+            throw new EntityNotFoundException("categoria nie existuje");
         }
     }
 }

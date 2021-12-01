@@ -14,6 +14,7 @@ public interface PositionDao {
     Position getById(Long id) throws EntityNotFoundException;
     Map<Position,Double> fullnessOfPositionV();
     Double getСapacityOfPositionV(Long positionId);
+    Long getIdPositionByProduct(Product product,int pocet);
 
 
 }

@@ -32,4 +32,8 @@ public class Categories {
                 ", Categoria='" + Categoria + '\'' +
                 '}';
     }
+
+    public Categories(String categoria) {
+        Categoria = categoria;
+    }
 }
