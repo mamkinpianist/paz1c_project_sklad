@@ -4,6 +4,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import storage.constructors.Categories;
 import storage.DaoFactory;
 import storage.EntityNotFoundException;
@@ -51,18 +53,34 @@ public class MysqlProductDao implements ProductDao {
     public Product save(Product product) {
         if (product.getIdProduct() == null)//Insert
         {
-            String sql = "INSERT INTO products (name, manufacture, EAN, weight, taste, height, length, width, piecesInPackage, Categories)" +
-                    "VALUES (?,?,?,?,?,?,?,?,?,?);";
-            jdbcTemplate.update(sql, product.getName(), product.getManufacture(), product.getEAN(),
-                    product.getWeight(), product.getTaste(), product.getHeight(), product.getLength(),
-                    product.getWidth(), product.getPiecesInPackage(), product.getCategories().getIdCategories());
+            SimpleJdbcInsert insert = new SimpleJdbcInsert(jdbcTemplate);
+            insert.withTableName("products");
+            insert.usingGeneratedKeyColumns("idProduct");
+            insert.usingColumns("name","manufacture","EAN","weight","taste","height","length","width","piecesInPackage","Categories");
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+            namedParameters.addValue("name",product.getName());
+            namedParameters.addValue("manufacture",product.getManufacture());
+            namedParameters.addValue("EAN",product.getEAN());
+            namedParameters.addValue("weight",product.getWeight());
+            namedParameters.addValue("taste",product.getTaste());
+            namedParameters.addValue("height",product.getHeight());
+            namedParameters.addValue("length",product.getLength());
+            namedParameters.addValue("width",product.getWidth());
+            namedParameters.addValue("piecesInPackage",product.getPiecesInPackage());
+            namedParameters.addValue("Categories",product.getCategories().getIdCategories());
+            Long id = insert.executeAndReturnKey(namedParameters).longValue();
+            return new Product(id,product.getName(), product.getManufacture(), product.getEAN(), product.getWeight(), product.getTaste(), product.getHeight(), product.getLength(), product.getWidth(), product.getPiecesInPackage(), product.getCategories());
         } else {
             String sql = "UPDATE products p SET name =?, manufacture = ?, EAN = ?, weight = ?, taste = ?, height = ?, length = ?, width = ?, piecesInPackage = ?, Categories = ? WHERE idProduct = ?";
-            jdbcTemplate.update(sql, product.getName(), product.getManufacture(), product.getEAN(),
+            int pocet = jdbcTemplate.update(sql, product.getName(), product.getManufacture(), product.getEAN(),
                     product.getWeight(), product.getTaste(), product.getHeight(), product.getLength(),
                     product.getWidth(), product.getPiecesInPackage(), product.getCategories().getIdCategories(), product.getIdProduct());
+            if (pocet >= 1) {
+                return new Product(product.getIdProduct(),product.getName(), product.getManufacture(), product.getEAN(), product.getWeight(), product.getTaste(), product.getHeight(), product.getLength(), product.getWidth(), product.getPiecesInPackage(), product.getCategories());
+            } else {
+                throw new EntityNotFoundException("product nie existuje");
+            }
         }
-        return product;
     }
 
     @Override
@@ -128,8 +146,8 @@ public class MysqlProductDao implements ProductDao {
     }
 
     @Override
-    public Map<Product, Integer> productOnPosiiton(Position position) {
-        return jdbcTemplate.query("Select * from prosuctonposition where idPosition = " + position.getIdPosiiton(), new ResultSetExtractor<Map<Product, Integer>>() {
+    public Map<Product, Integer> productOnPosiiton(Long position) {
+        return jdbcTemplate.query("Select * from prosuctonposition where idPosition = " + position, new ResultSetExtractor<Map<Product, Integer>>() {
             @Override
             public Map<Product, Integer> extractData(ResultSet rs) throws SQLException, DataAccessException {
                 Map<Product, Integer> productIntegerMap = new HashMap<>();
@@ -148,7 +166,7 @@ public class MysqlProductDao implements ProductDao {
         double productCapacity = product.getHeight() * product.getWidth() * product.getLength() * count;
         double productCapacityM = product.getWeight() * count;
         double positionCapacity = DaoFactory.INSTANCE.getPositionDao().getСapacityOfPositionV(position.getIdPosiiton());
-        double positionCapacityM = DaoFactory.INSTANCE.getPositionDao().getById(position.getIdPosiiton()).getWeight();
+        double positionCapacityM = DaoFactory.INSTANCE.getPositionDao().getById(position.getIdPosiiton()).getWidth();
         List<Position> positionList = DaoFactory.INSTANCE.getPositionDao().getAll();
         Map<Product, Integer> allProductOnPosition = new HashMap<>();
         for (int i = 0; i < positionList.size(); i++) {

@@ -4,6 +4,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import storage.DaoFactory;
 import storage.EntityNotFoundException;
 import storage.constructors.Position;
@@ -52,7 +54,8 @@ public class MysqlPositionDao implements PositionDao {
                     }
                     Long idProduct = rs.getLong("idProduct");
                     int count = rs.getInt("count");
-                    position.getProducts().put(DaoFactory.INSTANCE.getProductDao().getbyId(id), count);
+
+                    position.getProducts().put(DaoFactory.INSTANCE.getProductDao().getbyId(idProduct), count);
                 }
                 return positionList;
             }
@@ -64,30 +67,42 @@ public class MysqlPositionDao implements PositionDao {
         Long posiiton1 = position.getIdPosiiton();
         if (posiiton1 == null)//INSERT
         {
-            String sql = "INSERT INTO positions(floor,positionNumber,shelf,height,weight,lenght,BearingCapacity) VALUE(?,?,?,?,?,?,?)";
-            int pocet = jdbcTemplate.update(sql, position.getFloor(), position.getPositionNumber(), position.getShelf(), position.getHeight(), position.getWeight(), position.getLength(), position.getBearingCapacity());
-            if (pocet == 1) {
-                return position;
-            }
+            SimpleJdbcInsert insert = new SimpleJdbcInsert(jdbcTemplate);
+            insert.withTableName("positions");
+            insert.usingGeneratedKeyColumns("id");
+            insert.usingColumns("floor","positionNumber","shelf","height","weight","lenght","BearingCapacity");
+            MapSqlParameterSource namedParameters = new MapSqlParameterSource();
+            namedParameters.addValue("floor",position.getFloor());
+            namedParameters.addValue("positionNumber",position.getPositionNumber());
+            namedParameters.addValue("shelf",position.getShelf());
+            namedParameters.addValue("height",position.getHeight());
+            namedParameters.addValue("weight",position.getWidth());
+            namedParameters.addValue("lenght",position.getLength());
+            namedParameters.addValue("BearingCapacity",position.getBearingCapacity());
+            Long id = insert.executeAndReturnKey(namedParameters).longValue();
+            return new Position(id,position.getFloor(),position.getPositionNumber(),position.getShelf(),position.getHeight(),position.getWidth(),position.getLength(),position.getBearingCapacity());
         } else {//update
             String sql = "UPDATE positions SET floor = ?,positionNumber = ?,shelf = ?,height = ?,weight = ?,lenght = ?,BearingCapacity = ? where id = ?";
-            int pocet = jdbcTemplate.update(sql, position.getFloor(), position.getPositionNumber(), position.getShelf(), position.getHeight(), position.getWeight(), position.getLength(), position.getBearingCapacity(), position.getIdPosiiton());
+            int pocet = jdbcTemplate.update(sql, position.getFloor(), position.getPositionNumber(), position.getShelf(), position.getHeight(), position.getWidth(), position.getLength(), position.getBearingCapacity(), position.getIdPosiiton());
             if (pocet >= 1) {
-                return position;
+                return new Position(position.getIdPosiiton(),position.getFloor(),position.getPositionNumber(),position.getShelf(),position.getHeight(),position.getWidth(),position.getLength(),position.getBearingCapacity());
             } else {
                 throw new EntityNotFoundException("positia nie existuje");
 
             }
         }
-        return position;
     }
 
     @Override
     public Position delete(Long id) throws EntityNotFoundException {
         Position posToDelete = getById(id);
-        String sql = "DELETE from positions where id =" + id;
-        int pocet = jdbcTemplate.update(sql);
-        return posToDelete;
+        try {
+            String sql = "DELETE from positions where id =" + id;
+            jdbcTemplate.update(sql);
+            return posToDelete;
+        } catch (DataAccessException e) {
+            throw new EntityNotFoundException("nie je mozne zmazat Poziciu");
+        }
     }
 
     @Override
@@ -105,7 +120,8 @@ public class MysqlPositionDao implements PositionDao {
                     double weight = rs.getDouble("weight");
                     double lenght = rs.getDouble("lenght");
                     double BearingCapacity = rs.getDouble("BearingCapacity");
-                    return new Position(id, floor, positonNumber, shelf, height, weight, lenght, BearingCapacity);
+                    Map<Product, Integer> productIntegerMap = DaoFactory.INSTANCE.getProductDao().productOnPosiiton(id);
+                    return new Position(id, floor, positonNumber, shelf, height, weight, lenght, BearingCapacity,productIntegerMap);
                 }
             });
         } catch (DataAccessException e) {
@@ -120,7 +136,7 @@ public class MysqlPositionDao implements PositionDao {
         for (int i = 0; i < getAll().size(); i++) {
             double getСapacityOfPosition = getСapacityOfPositionV(positionList.get(i).getIdPosiiton());
             double VofProducts = 0;
-            Map<Product,Integer> productIntegerMap = DaoFactory.INSTANCE.getProductDao().productOnPosiiton(positionList.get(i));
+            Map<Product,Integer> productIntegerMap = DaoFactory.INSTANCE.getProductDao().productOnPosiiton(positionList.get(i).getIdPosiiton());
             for (Product product:productIntegerMap.keySet()) {
                 double VofProducts1 = product.getHeight()*product.getLength()*product.getWidth();
                 int count = productIntegerMap.get(product);
@@ -136,7 +152,7 @@ public class MysqlPositionDao implements PositionDao {
     @Override
     public Double getСapacityOfPositionV(Long positionId) {
         Position position = DaoFactory.INSTANCE.getPositionDao().getById(positionId);
-        return position.getHeight() * position.getWeight() * position.getLength();
+        return position.getHeight() * position.getWidth() * position.getLength();
     }
 
     @Override

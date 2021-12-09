@@ -30,18 +30,6 @@ public class MysqlRoleDao implements RoleDao {
     }
 
     @Override
-    public Roles saveUpdate(Roles roles) throws EntityNotFoundException {
-        Long rolesId = roles.getIdRole();
-        if (rolesId != null) {
-            String sql = "UPDATE roles SET role = ? where idRoles = ?";
-            int CountOfChange = jdbcTemplate.update(sql, roles.getRole(), roles.getIdRole());
-            if (CountOfChange != 1)
-                throw new EntityNotFoundException("role nie existuje");
-        }
-        return roles;
-    }
-
-    @Override
     public Roles getByid(Long id) throws EntityNotFoundException {
         try {
             String sql = "SELECT * FROM roles where idRoles = " + id;

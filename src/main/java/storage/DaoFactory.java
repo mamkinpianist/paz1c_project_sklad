@@ -14,6 +14,11 @@ public enum DaoFactory {
     private ProductDao productDao;
     private UserDao userDao;
     private OrderDao orderDao;
+    private boolean test = false;
+    public void testing() {
+        test = true;
+    }
+
     public OrderDao getorderDao()
     {
         if(orderDao ==null)
@@ -64,13 +69,18 @@ public enum DaoFactory {
         return PositionDao;
     }
     private JdbcTemplate getJdbcTemplate() {
-        if (jdbcTemplate == null) {
-            MysqlDataSource dataSource = new MysqlDataSource();
-            dataSource.setUser("sklad_paz1c");
-            dataSource.setPassword("paz1c0000");
-            dataSource.setUrl("jdbc:mysql://localhost/paz1c_project?serverTimezone=Europe/Bratislava");
-            jdbcTemplate = new JdbcTemplate(dataSource);
-        }
+
+            if (jdbcTemplate == null) {
+                MysqlDataSource dataSource = new MysqlDataSource();
+                dataSource.setUser("sklad_paz1c");
+                dataSource.setPassword("paz1c0000");
+                if (!test)
+                dataSource.setUrl("jdbc:mysql://localhost/paz1c_project?serverTimezone=Europe/Bratislava");
+                else
+                    dataSource.setUrl("jdbc:mysql://localhost/paz1c_project_test?serverTimezone=Europe/Bratislava");
+
+                jdbcTemplate = new JdbcTemplate(dataSource);
+            }
         return jdbcTemplate;
     }
 }

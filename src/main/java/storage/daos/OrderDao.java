@@ -11,7 +11,6 @@ public interface OrderDao {
     Order createOrder(Order order);
     Map<Product, Integer> getProductInOrder(Order order);
     Order update(Order order);
-    Order getIdFromOrder(Order order);
-
-
+    Boolean OrderControl(Order order);
+    Order getById(Long id);
 }

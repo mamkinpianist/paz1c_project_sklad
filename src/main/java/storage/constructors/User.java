@@ -1,6 +1,7 @@
 package storage.constructors;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class User {
     private Long idUser;
@@ -13,6 +14,15 @@ public class User {
 
     public User(Long idUser, String name, String surname, Date dateOfBirth, String login, String password, Roles role) {
         this.idUser = idUser;
+        Name = name;
+        Surname = surname;
+        DateOfBirth = dateOfBirth;
+        Login = login;
+        Password = password;
+        this.role = role;
+    }
+
+    public User(String name, String surname, Date dateOfBirth, String login, String password, Roles role) {
         Name = name;
         Surname = surname;
         DateOfBirth = dateOfBirth;
@@ -89,4 +99,18 @@ public class User {
                 ", role=" + role +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return Objects.equals(idUser, user.idUser) && Name.equals(user.Name) && Surname.equals(user.Surname) && DateOfBirth.equals(user.DateOfBirth) && Login.equals(user.Login) && Password.equals(user.Password) && role.equals(user.role);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idUser, Name, Surname, DateOfBirth, Login, Password, role);
+    }
+
 }

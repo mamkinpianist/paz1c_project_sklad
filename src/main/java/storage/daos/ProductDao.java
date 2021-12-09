@@ -13,7 +13,7 @@ public interface ProductDao {
     Product delete(Long id);
     Product getbyId(Long id);
     List<Product> getbyCategory(Categories categories);
-    Map<Product,Integer> productOnPosiiton(Position position);
+    Map<Product,Integer> productOnPosiiton(Long position);
     boolean СapacityСheckProduct(Position position,Product product,int count);
     void putProductOnPosition(Position position,Product product,int count);
     void transferProductOnAnotherPosition(Position positionfrom,Product product,Position positionfor,int count);

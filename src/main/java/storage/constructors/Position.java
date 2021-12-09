@@ -1,8 +1,8 @@
 package storage.constructors;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Position {
     private Long idPosiiton;
@@ -10,29 +10,39 @@ public class Position {
     private int positionNumber;
     private String shelf;
     private double height;
-    private double weight;
+    private double width;
     private double length;
     private double BearingCapacity;
     private Map<Product,Integer> products =new HashMap<>();
 
-    public Position(Long idPosiiton, int floor, int positionNumber, String shelf, double height, double weight, double length, double bearingCapacity) {
+    public Position(Long idPosiiton, int floor, int positionNumber, String shelf, double height, double width, double length, double bearingCapacity) {
         this.idPosiiton = idPosiiton;
         this.floor = floor;
         this.positionNumber = positionNumber;
         this.shelf = shelf;
         this.height = height;
-        this.weight = weight;
+        this.width = width;
         this.length = length;
         BearingCapacity = bearingCapacity;
     }
 
-    public Position(Long idPosiiton, int floor, int positionNumber, String shelf, double height, double weight, double length, double bearingCapacity, Map<Product,Integer> products) {
+    public Position(int floor, int positionNumber, String shelf, double height, double width, double length, double bearingCapacity) {
+        this.floor = floor;
+        this.positionNumber = positionNumber;
+        this.shelf = shelf;
+        this.height = height;
+        this.width = width;
+        this.length = length;
+        BearingCapacity = bearingCapacity;
+    }
+
+    public Position(Long idPosiiton, int floor, int positionNumber, String shelf, double height, double width, double length, double bearingCapacity, Map<Product,Integer> products) {
         this.idPosiiton = idPosiiton;
         this.floor = floor;
         this.positionNumber = positionNumber;
         this.shelf = shelf;
         this.height = height;
-        this.weight = weight;
+        this.width = width;
         this.length = length;
         BearingCapacity = bearingCapacity;
         this.products = products;
@@ -86,12 +96,12 @@ public class Position {
         this.height = height;
     }
 
-    public double getWeight() {
-        return weight;
+    public double getWidth() {
+        return width;
     }
 
-    public void setWeight(double weight) {
-        this.weight = weight;
+    public void setWidth(double width) {
+        this.width = width;
     }
 
     public double getLength() {
@@ -118,10 +128,23 @@ public class Position {
                 ", positionNumber=" + positionNumber +
                 ", shelf='" + shelf + '\'' +
                 ", height=" + height +
-                ", weight=" + weight +
+                ", width=" + width +
                 ", length=" + length +
                 ", BearingCapacity=" + BearingCapacity +
                 ", products=" + products +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Position)) return false;
+        Position position = (Position) o;
+        return floor == position.floor && positionNumber == position.positionNumber && Double.compare(position.height, height) == 0 && Double.compare(position.width, width) == 0 && Double.compare(position.length, length) == 0 && Double.compare(position.BearingCapacity, BearingCapacity) == 0 && Objects.equals(idPosiiton, position.idPosiiton) && shelf.equals(position.shelf) && products.equals(position.products);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idPosiiton, floor, positionNumber, shelf, height, width, length, BearingCapacity, products);
     }
 }

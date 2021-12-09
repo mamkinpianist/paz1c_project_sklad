@@ -24,6 +24,16 @@ public class Order {
         this.productsInOrder = productsInOrder;
     }
 
+    public Order(Long idOrder, String name, double summ, String orderStatus, User salesMan, Date dateTime, Map<Product, Integer> productsInOrder) {
+        this.idOrder = idOrder;
+        Name = name;
+        Summ = summ;
+        OrderStatus = orderStatus;
+        SalesMan = salesMan;
+        DateTime = dateTime;
+        this.productsInOrder = productsInOrder;
+    }
+
     public Order(Long idOrder, String name, double summ, String orderStatus, User salesMan, Date dateTime) {
         this.idOrder = idOrder;
         Name = name;

@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import storage.constructors.Categories;
 import storage.EntityNotFoundException;
+import storage.constructors.Order;
 import storage.daos.CategoriesDAO;
 
 import java.sql.ResultSet;
@@ -47,10 +48,7 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
             namedParameters.addValue("categoria",categories.getCategoria());
             try {
                 Long Id = insert.executeAndReturnKey(namedParameters).longValue();
-                if (Id>=1) {
-                    categories.setIdCategories(Id);
-                    return categories;
-                }
+                    return new Categories(Id,categories.getCategoria());
             } catch (DuplicateKeyException e) {
                throw new EntityNotFoundException("categoria uz existuje");
             }
@@ -58,12 +56,11 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
             String sql = "UPDATE categories SET categoria = ? where idCategories = ?";
             int pocet = jdbcTemplate.update(sql, categories.getCategoria(),categories.getIdCategories());
             if (pocet >= 1) {
-                return categories;
+                return new Categories(categories.getIdCategories(),categories.getCategoria());
             } else {
                 throw new EntityNotFoundException("categoria nie existuje");
             }
         }
-        return categories;
     }
 
     @Override
@@ -71,7 +68,7 @@ public class MysqlCategoriesDAO  implements CategoriesDAO {
         Categories catToDelete = getbyID(id);
         try {
             String sql = "DELETE from categories where idCategories =" + id;
-            int pocet = jdbcTemplate.update(sql);
+            jdbcTemplate.update(sql);
         } catch (DataIntegrityViolationException e) {
              throw new EntityNotFoundException("nie je mozne zmazat categoriu");
         }
